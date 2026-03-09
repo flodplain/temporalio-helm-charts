@@ -1,22 +1,18 @@
 {{ if .Values.web.istioVirtualService.enabled }}
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   annotations:
-    external-dns.alpha.kubernetes.io/target: api-internal-cname.{{ .Values.envName }}.flodplains.com
-  name: "{{ include "temporal.componentname" (list . "web") }}-internal-8080"
+    external-dns.alpha.kubernetes.io/target: api-cname.{{ .Values.envName }}.flodplains.com
+  name: "temporal-web-vs"
+  namespace: "{{ $.Release.Namespace }}"
 spec:
   gateways:
-    - "{{ $.Release.Namespace }}-gateway-internal"
+    - "{{ $.Release.Namespace }}-gateway-internet-facing"
   hosts:
     - "temporal.{{ .Values.envName }}.flodplains.com"
   http:
-    - match:
-        - uri:
-            prefix: /
-      rewrite:
-        uri: /
-      route:
+    - route:
         - destination:
             host: {{ include "temporal.componentname" (list . "web") }}
             port:
